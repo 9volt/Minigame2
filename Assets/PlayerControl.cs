@@ -5,15 +5,16 @@ public class PlayerControl : MonoBehaviour {
 	public bool facingRight = false;			// For determining which way the player is currently facing.
 	[HideInInspector]
 	
-	public float moveForce = 35f;			// Amount of force added to move the player left and right.
-	public float maxSpeed =5f;				// The fastest the player can travel in the x axis.
+	public float moveForce = 15f;			// Amount of force added to move the player left and right.
+	public float maxSpeed =2f;				// The fastest the player can travel in the x axis.
+	public Rigidbody2D arrowModel;
 	// Use this for initialization
 	void Start () {
 	
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void FixedUpdate () {
 	
 		// Cache the horizontal input.
 		float h = Input.GetAxis("Horizontal");
@@ -51,7 +52,15 @@ public class PlayerControl : MonoBehaviour {
 			// ... flip the player.
 			Flip();
 
+
+		
+		// Shoot an Arrow
+		if (Input.GetButtonDown("Fire1")) {
+
+			shootArrow();
+		}
 	}
+
 
 	void Flip ()
 	{
@@ -63,4 +72,10 @@ public class PlayerControl : MonoBehaviour {
 		theScale.x *= -1;
 		transform.localScale = theScale;
 	}
+
+void shootArrow() {
+	Rigidbody2D arrow = (Rigidbody2D) Instantiate(arrowModel, transform.position, transform.rotation);
+	arrow.velocity = transform.forward * 5;
+}
+
 }
