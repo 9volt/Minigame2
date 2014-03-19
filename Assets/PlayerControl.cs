@@ -3,19 +3,24 @@ using System.Collections;
 
 public class PlayerControl : MonoBehaviour {
 	public bool facingRight = false;			// For determining which way the player is currently facing.
-	[HideInInspector]
-	
-	public float moveForce = 15f;			// Amount of force added to move the player left and right.
-	public float maxSpeed =2f;				// The fastest the player can travel in the x axis.
-	public Rigidbody2D arrowModel;
+	public float moveForce = 30f;			// Amount of force added to move the player left and right.
+	public float maxSpeed = 200f;				// The fastest the player can travel in the x axis.
+	public GameObject arrowModel;
+	public GameObject boss;
+	int health = 100;
+	public GameObject lost;
+	public AudioClip loseClip;
+	public AudioClip damageClip;
+	public AudioClip shoot;
+
+
 	// Use this for initialization
 	void Start () {
-	
+		lost.SetActive(false);
 	}
 	
 	// Update is called once per frame
-	void FixedUpdate () {
-	
+	void FixedUpdate () {	
 		// Cache the horizontal input.
 		float h = Input.GetAxis("Horizontal");
 		
@@ -59,6 +64,14 @@ public class PlayerControl : MonoBehaviour {
 
 			shootArrow();
 		}
+
+		if (health <= 0){
+			Debug.Log ("Game Over");
+			//gameObject.active = false;
+			lost.SetActive(true);
+			gameObject.SetActive(false);
+			AudioSource.PlayClipAtPoint(loseClip, transform.position);
+		}
 	}
 
 
@@ -73,9 +86,47 @@ public class PlayerControl : MonoBehaviour {
 		transform.localScale = theScale;
 	}
 
-void shootArrow() {
-	Rigidbody2D arrow = (Rigidbody2D) Instantiate(arrowModel, transform.position, transform.rotation);
-	arrow.velocity = transform.forward * 5;
-}
+	void shootArrow() {
+		// Create arrow at current position
+		GameObject arrow = (GameObject) Instantiate(arrowModel, transform.position, transform.rotation);
+		// Create target
+		Vector3 target = boss.transform.position - arrow.transform.position;
+		target.Normalize();
+		// Rotate by Atan2 of target
+		arrow.transform.Rotate(Vector3.forward, Mathf.Atan2(target.y, target.x) * Mathf.Rad2Deg);
+		// Apply velocity (remember right is "forward")
+		arrow.rigidbody2D.velocity = arrow.transform.right * 10;
+		AudioSource.PlayClipAtPoint(shoot, transform.position);
+
+	}
+
+	void OnCollisionEnter2D (Collision2D col)
+	{
+		// If the colliding gameobject is an Enemy...
+		if(col.gameObject.tag == "Enemy"){
+			health = health-20;
+			Debug.Log("Ow!");
+			AudioSource.PlayClipAtPoint(damageClip, transform.position);
+		}
+
+	}
+
+	void OnTriggerEnter2D (Collider2D col)
+	{
+		// If the colliding gameobject is an Enemy...
+		if(col.gameObject.tag == "Pin"){
+			health = health - 20;
+			Debug.Log("You're hit!");
+			AudioSource.PlayClipAtPoint(damageClip, transform.position);
+			col.gameObject.SetActive(false);
+		}
+		
+	}
+//	IEnumerator restart_game(float x){
+		//gameObject.active = false;
+		//Debug.Log("trying to reload");
+		//yield return new WaitForSeconds(x);
+		//Application.LoadLevel("/Assets/boss_fight_2d");		
+	//}
 
 }
